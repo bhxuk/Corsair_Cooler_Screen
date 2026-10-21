@@ -137,6 +137,54 @@ namespace CoolerScreen.Core
       <Trigger Property='IsMouseOver' Value='True'><Setter TargetName='thumb' Property='Height' Value='8'/><Setter TargetName='thumb' Property='Background' Value='" + hover + @"'/></Trigger>
     </ControlTemplate.Triggers>
   </ControlTemplate>
+
+  <Style TargetType='ComboBox'>
+    <Setter Property='Foreground' Value='TEXT'/>
+    <Setter Property='Background' Value='SUBTLE'/>
+    <Setter Property='BorderBrush' Value='LINE'/>
+    <Setter Property='Template'>
+      <Setter.Value>
+        <ControlTemplate TargetType='ComboBox'>
+          <Grid>
+            <ToggleButton Focusable='False' ClickMode='Press' IsChecked='{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}'>
+              <ToggleButton.Template>
+                <ControlTemplate TargetType='ToggleButton'>
+                  <Border x:Name='bd' Background='SUBTLE' BorderBrush='LINE' BorderThickness='1' CornerRadius='10'>
+                    <Path HorizontalAlignment='Right' VerticalAlignment='Center' Margin='0,0,12,0' Data='M0,0 L5,5 L10,0' Stroke='MUTED' StrokeThickness='1.8'/>
+                  </Border>
+                  <ControlTemplate.Triggers>
+                    <Trigger Property='IsMouseOver' Value='True'><Setter TargetName='bd' Property='BorderBrush' Value='MUTED'/></Trigger>
+                  </ControlTemplate.Triggers>
+                </ControlTemplate>
+              </ToggleButton.Template>
+            </ToggleButton>
+            <ContentPresenter IsHitTestVisible='False' Margin='12,0,30,0' VerticalAlignment='Center' HorizontalAlignment='Left'
+              Content='{TemplateBinding SelectionBoxItem}' ContentTemplate='{TemplateBinding SelectionBoxItemTemplate}'/>
+            <Popup IsOpen='{TemplateBinding IsDropDownOpen}' Placement='Bottom' AllowsTransparency='True' Focusable='False' PopupAnimation='Fade'>
+              <Border Background='POPUP' BorderBrush='LINE' BorderThickness='1' CornerRadius='10' Margin='0,4,0,0' Padding='4'
+                MinWidth='{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}' MaxHeight='{TemplateBinding MaxDropDownHeight}'>
+                <ScrollViewer><ItemsPresenter/></ScrollViewer>
+              </Border>
+            </Popup>
+          </Grid>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+  <Style TargetType='ComboBoxItem'>
+    <Setter Property='Foreground' Value='TEXT'/>
+    <Setter Property='Template'>
+      <Setter.Value>
+        <ControlTemplate TargetType='ComboBoxItem'>
+          <Border x:Name='b' Padding='10,7' CornerRadius='7' Background='Transparent'><ContentPresenter/></Border>
+          <ControlTemplate.Triggers>
+            <Trigger Property='IsHighlighted' Value='True'><Setter TargetName='b' Property='Background' Value='SUBTLE'/></Trigger>
+            <Trigger Property='IsSelected' Value='True'><Setter TargetName='b' Property='Background' Value='ACCENTTINT'/></Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
   <Style TargetType='ScrollBar'>
     <Setter Property='OverridesDefaultStyle' Value='True'/>
     <Setter Property='Background' Value='Transparent'/>
@@ -151,6 +199,13 @@ namespace CoolerScreen.Core
     </Style.Triggers>
   </Style>
 </ResourceDictionary>";
+                string Hex(Color c) => "#" + c.A.ToString("X2") + c.R.ToString("X2") + c.G.ToString("X2") + c.B.ToString("X2");
+                xaml = xaml.Replace("'TEXT'", "'" + Hex(Theme.TextColor) + "'")
+                           .Replace("'MUTED'", "'" + Hex(Theme.MutedColor) + "'")
+                           .Replace("'SUBTLE'", "'" + Hex(Theme.Subtle.Color) + "'")
+                           .Replace("'LINE'", "'" + Hex(Theme.Line.Color) + "'")
+                           .Replace("'ACCENTTINT'", "'" + Hex(Theme.AccentTint.Color) + "'")
+                           .Replace("'POPUP'", "'" + Hex(Theme.PanelColor) + "'");
                 Application.Current.Resources.MergedDictionaries.Add((ResourceDictionary)XamlReader.Parse(xaml));
             }
             catch (Exception ex) { Log.Write("Styles: " + ex.Message); }
@@ -203,7 +258,12 @@ namespace CoolerScreen.Core
                 d.Margin = new Thickness(0, 0, 0, 6);
                 sp.Children.Add(d);
             }
-            foreach (var c in children) if (c != null) sp.Children.Add(c);
+            foreach (var c in children)
+            {
+                if (c == null) continue;
+                if (c is Button b) b.HorizontalAlignment = HorizontalAlignment.Left;
+                sp.Children.Add(c);
+            }
             return Card(sp, 22);
         }
 
@@ -387,7 +447,7 @@ namespace CoolerScreen.Core
                 catch { }
             }
             hex = Committing(value ?? "#000000", h => Set(h.StartsWith("#") ? h : "#" + h, true), 100);
-            var swatches = new WrapPanel { MaxWidth = 300 };
+            var swatches = new WrapPanel { MaxWidth = 300, HorizontalAlignment = HorizontalAlignment.Left };
             foreach (var sw in Swatches)
             {
                 string colour = sw;

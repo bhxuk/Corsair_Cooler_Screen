@@ -43,7 +43,7 @@ namespace CoolerScreen.Pages
             string top = s.Widget switch
             {
                 WidgetKind.Clock => "clock",
-                WidgetKind.Stats => s.Sensors.Count > 0 ? Sensors.Name(s.Sensors[0]).ToLowerInvariant() : "stats",
+                WidgetKind.Stats => s.Sensors.Count > 0 ? Sensors.Name(s.Sensors[0]) : "stats",
                 WidgetKind.Text => "message",
                 WidgetKind.Countdown => "countdown",
                 WidgetKind.NowPlaying => "now playing",

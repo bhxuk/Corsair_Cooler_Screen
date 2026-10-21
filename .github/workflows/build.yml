@@ -121,7 +121,7 @@ jobs:
           if (-not $alive) { Write-Host "::error::Cooler Screen exited during start-up"; exit 1 }
           if (-not $quitCleanly) { Write-Host "::error::--quit didn't close the running copy"; exit 1 }
           if (-not (Select-String -Path $log -Pattern "Selftest finished: no problems" -Quiet)) { Write-Host "::error::Self-test reported problems"; exit 1 }
-          if (Select-String -Path $log -Pattern "Unhandled|Fatal|Page .* failed|Editor failed|Timer:|Thumbnail:|Display:" -Quiet) { Write-Host "::error::Errors in the log"; exit 1 }
+          if (Select-String -Path $log -Pattern "Unhandled|Fatal|Page .* failed|Editor failed|Timer:|Thumbnail:|Display:|Styles:" -Quiet) { Write-Host "::error::Errors in the log"; exit 1 }
 
       - name: Publish app screenshots to the app-shots branch
         if: github.event_name == 'push'
