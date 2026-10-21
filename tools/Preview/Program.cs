@@ -154,13 +154,13 @@ namespace Preview
                 c.DrawCircle(x, y, r, p);
             }
             // A horizon of hills so zoom and position are easy to see.
-            using (var path = new SKPath())
+            using (var hills = new SKPath())
             {
-                path.MoveTo(0, h * 0.72f);
-                for (int x = 0; x <= w; x += 20) path.LineTo(x, h * 0.72f - (float)(Math.Sin(x / 90.0) * 30 + Math.Sin(x / 33.0) * 10));
-                path.LineTo(w, h); path.LineTo(0, h); path.Close();
+                hills.MoveTo(0, h * 0.72f);
+                for (int x = 0; x <= w; x += 20) hills.LineTo(x, h * 0.72f - (float)(Math.Sin(x / 90.0) * 30 + Math.Sin(x / 33.0) * 10));
+                hills.LineTo(w, h); hills.LineTo(0, h); hills.Close();
                 using var p = new SKPaint { Color = new SKColor(0x05, 0x07, 0x0C, 220), IsAntialias = true };
-                c.DrawPath(path, p);
+                c.DrawPath(hills, p);
             }
             using var img = s.Snapshot();
             File.WriteAllBytes(path, img.Encode(SKEncodedImageFormat.Png, 100).ToArray());

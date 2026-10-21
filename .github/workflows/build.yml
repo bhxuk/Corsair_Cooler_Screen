@@ -25,7 +25,10 @@ jobs:
         run: sudo apt-get update -qq && sudo apt-get install -y -qq fonts-inter ffmpeg > /dev/null
 
       - name: Render the screens
-        run: dotnet run --project tools/Preview/Preview.csproj -c Release -- "$GITHUB_WORKSPACE/previews"
+        run: |
+          set -o pipefail
+          dotnet run --project tools/Preview/Preview.csproj -c Release -- "$GITHUB_WORKSPACE/previews" 2>&1 | tee preview.log
+          grep -E "GIF test|TOO BIG|problem|All good|Font:" preview.log | sed 's/^/::notice::/' || true
 
       - uses: actions/upload-artifact@v4
         with:
@@ -107,7 +110,11 @@ jobs:
           # 2. Every page and every kind of screen in the editor.
           $t = Start-Process -FilePath "publish\CoolerScreen.exe" -ArgumentList "--selftest" -PassThru
           if (-not $t.WaitForExit(180000)) { Stop-Process -Id $t.Id -Force; Write-Error "Self-test didn't finish" }
-          if (Test-Path $log) { Get-Content $log }
+          if (Test-Path $log) {
+            Get-Content $log
+            # Show the interesting lines as annotations on the run.
+            Select-String -Path $log -Pattern "Selftest finished|Selftest FAILED|Unhandled|Fatal|failed|Timer:|Thumbnail:|Display:|Device:" | ForEach-Object { Write-Host ("::notice::" + $_.Line.Substring(0, [Math]::Min(900, $_.Line.Length))) }
+          }
           if (-not $alive) { Write-Error "Cooler Screen exited during start-up"; exit 1 }
           if (-not $quitCleanly) { Write-Error "--quit didn't close the running copy"; exit 1 }
           if (-not (Select-String -Path $log -Pattern "Selftest finished: no problems" -Quiet)) { Write-Error "Self-test reported problems"; exit 1 }
