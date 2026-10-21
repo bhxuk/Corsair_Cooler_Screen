@@ -185,13 +185,40 @@ namespace CoolerScreen
                 catch (Exception ex) { problems++; Log.Write("Selftest FAILED: " + name + ": " + ex); }
             }
             ShowHub();
+            Hub.Width = 1320; Hub.Height = 860;
+            Settle();
+            string shots = Environment.GetEnvironmentVariable("COOLERSCREEN_SHOTS");
+            void Shot(string name)
+            {
+                if (string.IsNullOrEmpty(shots)) return;
+                try
+                {
+                    Settle(); Settle();
+                    System.IO.Directory.CreateDirectory(shots);
+                    var root = (FrameworkElement)Hub.Content;
+                    int w = (int)root.ActualWidth, h = (int)root.ActualHeight;
+                    var rtb = new System.Windows.Media.Imaging.RenderTargetBitmap(w * 2, h * 2, 192, 192, System.Windows.Media.PixelFormats.Pbgra32);
+                    var dv = new System.Windows.Media.DrawingVisual();
+                    using (var dc = dv.RenderOpen())
+                    {
+                        dc.DrawRectangle(Theme.Bg, null, new Rect(0, 0, w, h));
+                        dc.DrawRectangle(new System.Windows.Media.VisualBrush(root), null, new Rect(0, 0, w, h));
+                    }
+                    rtb.Render(dv);
+                    var enc = new System.Windows.Media.Imaging.PngBitmapEncoder();
+                    enc.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(rtb));
+                    using var f = System.IO.File.Create(System.IO.Path.Combine(shots, name + ".png"));
+                    enc.Save(f);
+                }
+                catch (Exception ex) { Log.Write("Screenshot " + name + ": " + ex.Message); }
+            }
             foreach (var page in new[] { "home", "screens", "playlist", "automations", "device", "settings", "home" })
-                Step("page " + page, () => Hub.Navigate(page));
+                Step("page " + page, () => { Hub.Navigate(page); Shot("app-" + page); });
             foreach (var (title, _, spec) in Templates.All())
             {
                 var s = spec.Clone();
                 Settings.Current.Screens.Add(s);
-                Step("editor " + title, () => Hub.Edit(s));
+                Step("editor " + title, () => { Hub.Edit(s); if (title == "Analog" || title == "CPU and GPU" || title == "Weather") Shot("app-editor-" + title.ToLowerInvariant().Replace(' ', '-')); });
                 Step("show " + title, () => ShowScreen(s.Id));
             }
             Step("playlist on", () => { Settings.Current.PlaylistOn = true; Hub.Navigate("playlist"); });
