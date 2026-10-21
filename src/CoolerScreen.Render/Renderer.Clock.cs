@@ -138,7 +138,9 @@ namespace CoolerScreen.Render
                     c.DrawRoundRect(rect, 16, 16, card);
 
                 string digits = i == 0 ? h : m;
-                using var dp = TextPaint(x, Math.Max(700, s.FontWeight), 128, i == 0 ? x.Text : x.Accent);
+                // Sized on "88" so the digits don't change size from minute to minute.
+                float digitSize = FitSize("88", s.Font, Math.Max(700, s.FontWeight), 118, cw - 28);
+                using var dp = TextPaint(x, Math.Max(700, s.FontWeight), digitSize, i == 0 ? x.Text : x.Accent);
                 float cap = CapHeight(dp);
                 DrawCentered(c, digits, rect.MidX, rect.MidY + cap / 2, dp);
                 // The split across the middle of each card.

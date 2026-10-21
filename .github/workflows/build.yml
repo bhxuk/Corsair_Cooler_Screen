@@ -109,16 +109,16 @@ jobs:
           if (-not $p.HasExited) { Stop-Process -Id $p.Id -Force }
           # 2. Every page and every kind of screen in the editor.
           $t = Start-Process -FilePath "publish\CoolerScreen.exe" -ArgumentList "--selftest" -PassThru
-          if (-not $t.WaitForExit(180000)) { Stop-Process -Id $t.Id -Force; Write-Error "Self-test didn't finish" }
+          if (-not $t.WaitForExit(180000)) { Stop-Process -Id $t.Id -Force; Write-Host "::error::Self-test didn't finish" }
           if (Test-Path $log) {
             Get-Content $log
             # Show the interesting lines as annotations on the run.
-            Select-String -Path $log -Pattern "Selftest finished|Selftest FAILED|Unhandled|Fatal|failed|Timer:|Thumbnail:|Display:|Device:" | ForEach-Object { Write-Host ("::notice::" + $_.Line.Substring(0, [Math]::Min(900, $_.Line.Length))) }
+            Select-String -Path $log -Pattern "Selftest|Starting|starting|Unhandled|Fatal|failed|Timer:|Thumbnail:|Display:|Device:" | ForEach-Object { Write-Host ("::notice::" + $_.Line.Substring(0, [Math]::Min(900, $_.Line.Length))) }
           }
-          if (-not $alive) { Write-Error "Cooler Screen exited during start-up"; exit 1 }
-          if (-not $quitCleanly) { Write-Error "--quit didn't close the running copy"; exit 1 }
-          if (-not (Select-String -Path $log -Pattern "Selftest finished: no problems" -Quiet)) { Write-Error "Self-test reported problems"; exit 1 }
-          if (Select-String -Path $log -Pattern "Unhandled|Fatal|Page .* failed|Editor failed|Timer:|Thumbnail:|Display:" -Quiet) { Write-Error "Errors in the log"; exit 1 }
+          if (-not $alive) { Write-Host "::error::Cooler Screen exited during start-up"; exit 1 }
+          if (-not $quitCleanly) { Write-Host "::error::--quit didn't close the running copy"; exit 1 }
+          if (-not (Select-String -Path $log -Pattern "Selftest finished: no problems" -Quiet)) { Write-Host "::error::Self-test reported problems"; exit 1 }
+          if (Select-String -Path $log -Pattern "Unhandled|Fatal|Page .* failed|Editor failed|Timer:|Thumbnail:|Display:" -Quiet) { Write-Host "::error::Errors in the log"; exit 1 }
 
       - uses: actions/upload-artifact@v4
         with:
