@@ -49,7 +49,7 @@ namespace CoolerScreen.Pages
                 Settings.Current.Brightness = (int)Math.Round(v);
                 Settings.Save();
                 app.Engine.Poke();
-            }, 200);
+            }, 150);
             var brightCard = UI.Card(UI.V(8, UI.Text("Brightness", 15, Theme.Text, FontWeights.SemiBold), bright,
                 Settings.Current.Night.Enabled ? UI.Text("Night time dims it from " + Settings.Current.Night.From + " to " + Settings.Current.Night.To + ".", 12, Theme.Muted) : null), 18);
 

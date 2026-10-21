@@ -265,8 +265,28 @@ namespace CoolerScreen.Core
                 if (control is FrameworkElement fe) fe.VerticalAlignment = VerticalAlignment.Center;
                 Grid.SetColumn(control, 1);
                 g.Children.Add(control);
+                // In a narrow window the control moves under its title instead of squeezing it.
+                g.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+                g.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+                bool stacked = false;
+                g.SizeChanged += (s, e) =>
+                {
+                    double need = control is FrameworkElement c ? Measure(c) + 180 : 0;
+                    bool narrow = e.NewSize.Width < need;
+                    if (narrow == stacked) return;
+                    stacked = narrow;
+                    Grid.SetRow(control, narrow ? 1 : 0);
+                    Grid.SetColumn(control, narrow ? 0 : 1);
+                    if (control is FrameworkElement c2) { c2.HorizontalAlignment = HorizontalAlignment.Left; c2.Margin = narrow ? new Thickness(0, 0, 0, 8) : new Thickness(0); }
+                };
             }
             return g;
+        }
+
+        private static double Measure(FrameworkElement c)
+        {
+            c.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+            return c.DesiredSize.Width;
         }
 
         /// <summary>A label above a control, for stacked forms.</summary>

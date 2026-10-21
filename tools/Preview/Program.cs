@@ -42,7 +42,7 @@ namespace Preview
                 var s = spec;
                 if (s.Background == BackgroundKind.Picture) s.MediaPath = title.Contains("GIF") ? gif : art;
                 if (s.Background == BackgroundKind.Slideshow) { s.Background = BackgroundKind.Picture; s.MediaPath = art; }
-                if (s.Widget == WidgetKind.Weather) s.Place = "Birmingham";
+                if (s.Widget == WidgetKind.Weather) s.Place = "London";
                 shots.Add(("template-" + Slug(title), s, 1200));
             }
             foreach (ClockStyle c in Enum.GetValues(typeof(ClockStyle)))
@@ -115,7 +115,7 @@ namespace Preview
             }
             d.Set(SensorId.CpuTemp, 61);
             d.Set(SensorId.GpuTemp, 79);   // warm, so the colour-by-value shows amber
-            d.Weather = new WeatherNow { Place = "Birmingham", Temperature = 12.4, High = 14, Low = 7, Code = 2, IsDay = true, Updated = DateTime.Now };
+            d.Weather = new WeatherNow { Place = "London", Temperature = 12.4, High = 14, Low = 7, Code = 2, IsDay = true, Updated = DateTime.Now };
             var art = SKImage.FromEncodedData(File.ReadAllBytes(MakeArt(Path.Combine(_out, "_cover.png"), true)));
             d.Media = new NowPlaying
             {

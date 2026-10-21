@@ -31,7 +31,7 @@ namespace CoolerScreen.Pages
         {
             _hub = hub;
             _s = spec;
-            _preview = new SpecPreview(spec, 320);
+            _preview = new SpecPreview(spec, 290);
             _saveTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(600) };
             _saveTimer.Tick += (o, e) => { _saveTimer.Stop(); Settings.Save(); };
 
@@ -65,11 +65,15 @@ namespace CoolerScreen.Pages
             }, 40);
             var del = FlatButton.IconOnly(Icons.Trash, "Delete", () => { Flush(); ScreensPage.Delete(_s, hub); }, 40);
             var bar = new DockPanel { LastChildFill = true, Margin = new Thickness(0, 0, 0, 20) };
-            var rightBar = UI.H(8, showing, showBtn, dup, del);
-            DockPanel.SetDock(rightBar, Dock.Right);
-            bar.Children.Add(rightBar);
-            var leftBar = UI.H(12, back, name);
-            bar.Children.Add(leftBar);
+            DockPanel.SetDock(back, Dock.Left);
+            back.Margin = new Thickness(0, 0, 12, 0);
+            bar.Children.Add(back);
+            name.Width = double.NaN;
+            name.HorizontalAlignment = HorizontalAlignment.Stretch;
+            name.MaxWidth = 460;
+            bar.Children.Add(name);
+            var actions = UI.H(8, showing, showBtn, dup, del);
+            actions.HorizontalAlignment = HorizontalAlignment.Center;
 
             // ---------- sections ----------
             RebuildBackground();
@@ -106,9 +110,9 @@ namespace CoolerScreen.Pages
             });
             var note = UI.Text("Changes are saved as you go.", 12, Theme.Muted);
             note.TextAlignment = TextAlignment.Center;
-            var right = UI.V(18, _preview, UI.Row("Show on the cooler while editing", null, live), note);
-            right.Width = 360;
-            var rightPanel = new Border { Background = Theme.Stage, BorderBrush = Theme.Line, BorderThickness = new Thickness(1, 0, 0, 0), Padding = new Thickness(26, 36, 26, 20), Child = right };
+            var right = UI.V(18, actions, _preview, UI.Row("Show on the cooler while editing", null, live), note);
+            right.Width = 340;
+            var rightPanel = new Border { Background = Theme.Stage, BorderBrush = Theme.Line, BorderThickness = new Thickness(1, 0, 0, 0), Padding = new Thickness(22, 30, 22, 20), Child = right };
 
             var grid = new Grid();
             grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });

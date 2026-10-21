@@ -99,6 +99,8 @@ jobs:
         shell: pwsh
         run: |
           $log = Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) "CoolerScreen\coolerscreen.log"
+          # A bigger screen than the build machine's default 1024x768, for the screenshots.
+          try { Set-DisplayResolution -Width 1920 -Height 1080 -Force -ErrorAction Stop } catch { Write-Host "::notice::Couldn't change the screen size: $_" }
           # 1. Normal start, then a clean quit the way Setup does it.
           $p = Start-Process -FilePath "publish\CoolerScreen.exe" -PassThru
           Start-Sleep -Seconds 10
