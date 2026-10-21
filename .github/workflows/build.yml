@@ -1,0 +1,154 @@
+name: Build
+
+on:
+  push:
+    branches: [ main, dev ]
+    tags: [ 'v*' ]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  previews:
+    # Draws every screen style on Linux and checks the GIF loader.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Fonts and ffmpeg
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq fonts-inter ffmpeg > /dev/null
+
+      - name: Render the screens
+        run: dotnet run --project tools/Preview/Preview.csproj -c Release -- "$GITHUB_WORKSPACE/previews"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: previews
+          path: previews/*.png
+
+      - name: Publish previews to the previews branch
+        if: github.event_name == 'push'
+        run: |
+          cd previews
+          rm -f _*.png _*.gif
+          git init -q -b previews
+          git config user.name "bhxuk"
+          git config user.email "41471820+bhxuk@users.noreply.github.com"
+          git add .
+          git commit -q -m "Screen previews for ${GITHUB_SHA::7}"
+          git push -q -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" previews
+
+  build:
+    runs-on: windows-latest
+    needs: previews
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Work out the version
+        id: ver
+        shell: pwsh
+        run: |
+          if ($env:GITHUB_REF -like 'refs/tags/v*') {
+            $v = $env:GITHUB_REF_NAME.TrimStart('v')
+          } else {
+            [xml]$p = Get-Content src/CoolerScreen/CoolerScreen.csproj
+            $v = $p.Project.PropertyGroup.Version | Where-Object { $_ } | Select-Object -First 1
+          }
+          "version=$v" >> $env:GITHUB_OUTPUT
+          Write-Host "Version $v"
+
+      - name: Build CoolerScreen.exe
+        shell: pwsh
+        run: >
+          dotnet publish src/CoolerScreen/CoolerScreen.csproj -c Release -r win-x64 --self-contained true
+          -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:DebugType=embedded
+          -p:Version=${{ steps.ver.outputs.version }} -o publish -nologo
+
+      - name: Install Inno Setup
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe")) {
+            choco install innosetup -y --no-progress
+          }
+
+      - name: Build Setup.exe
+        shell: pwsh
+        run: |
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" /Qp "/DMyAppVersion=${{ steps.ver.outputs.version }}" "/DPublishDir=..\publish" installer\CoolerScreen.iss
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Copy-Item "dist\CoolerScreen-Setup-${{ steps.ver.outputs.version }}.exe" "dist\CoolerScreen-Setup.exe"
+          Copy-Item "publish\CoolerScreen.exe" "dist\CoolerScreen.exe"
+          Get-ChildItem dist
+
+      - name: Start-up check
+        # Runs the real exe for a few seconds on the build machine (no cooler attached) to catch crashes at start-up.
+        shell: pwsh
+        run: |
+          $log = Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) "CoolerScreen\coolerscreen.log"
+          # 1. Normal start, then a clean quit the way Setup does it.
+          $p = Start-Process -FilePath "publish\CoolerScreen.exe" -PassThru
+          Start-Sleep -Seconds 10
+          $alive = -not $p.HasExited
+          & "publish\CoolerScreen.exe" --quit
+          Start-Sleep -Seconds 3
+          $quitCleanly = $p.HasExited
+          if (-not $p.HasExited) { Stop-Process -Id $p.Id -Force }
+          # 2. Every page and every kind of screen in the editor.
+          $t = Start-Process -FilePath "publish\CoolerScreen.exe" -ArgumentList "--selftest" -PassThru
+          if (-not $t.WaitForExit(180000)) { Stop-Process -Id $t.Id -Force; Write-Error "Self-test didn't finish" }
+          if (Test-Path $log) { Get-Content $log }
+          if (-not $alive) { Write-Error "Cooler Screen exited during start-up"; exit 1 }
+          if (-not $quitCleanly) { Write-Error "--quit didn't close the running copy"; exit 1 }
+          if (-not (Select-String -Path $log -Pattern "Selftest finished: no problems" -Quiet)) { Write-Error "Self-test reported problems"; exit 1 }
+          if (Select-String -Path $log -Pattern "Unhandled|Fatal|Page .* failed|Editor failed|Timer:|Thumbnail:|Display:" -Quiet) { Write-Error "Errors in the log"; exit 1 }
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CoolerScreen-Setup-${{ steps.ver.outputs.version }}
+          path: |
+            dist/CoolerScreen-Setup.exe
+            dist/CoolerScreen.exe
+
+      - name: Is this a new version?
+        id: rel
+        if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view "v${{ steps.ver.outputs.version }}" --repo $env:GITHUB_REPOSITORY *> $null
+          if ($LASTEXITCODE -eq 0) { "new=false" >> $env:GITHUB_OUTPUT } else { "new=true" >> $env:GITHUB_OUTPUT }
+          $global:LASTEXITCODE = 0
+
+      - name: Publish release
+        if: steps.rel.outputs.new == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.ver.outputs.version }}
+          target_commitish: ${{ github.sha }}
+          name: Cooler Screen ${{ steps.ver.outputs.version }}
+          make_latest: true
+          files: |
+            dist/CoolerScreen-Setup.exe
+            dist/CoolerScreen.exe
+          body: |
+            ## Download
+
+            **[CoolerScreen-Setup.exe](https://github.com/${{ github.repository }}/releases/download/v${{ steps.ver.outputs.version }}/CoolerScreen-Setup.exe)**, then double-click it. No admin rights needed.
+
+            Prefer no installer? **[CoolerScreen.exe](https://github.com/${{ github.repository }}/releases/download/v${{ steps.ver.outputs.version }}/CoolerScreen.exe)** runs on its own from any folder.
+
+            Windows may show "Windows protected your PC" because the app isn't code-signed. Click **More info** and then **Run anyway**.
+
+            See the [user guide](https://github.com/${{ github.repository }}/blob/main/docs/USER-GUIDE.md) and [what's new](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md).

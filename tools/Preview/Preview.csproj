@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Renders every screen style to PNG files: used for the website pictures and to check the drawing. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\CoolerScreen.Render\CoolerScreen.Render.csproj" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="2.88.9" Condition="'$(OS)' != 'Windows_NT'" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="testdata\**" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>
