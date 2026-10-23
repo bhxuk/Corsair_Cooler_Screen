@@ -107,9 +107,9 @@ These take over from the playlist or your chosen screen when they apply, in this
 - **Frames a second for GIFs** (10 to 30) and **Picture quality**. Clocks and stats only update once a second, so they use very little.
 - **When Cooler Screen closes, give the screen back to the cooler**: on by default, so the cooler shows its own display when the app isn't running.
 
-### Why it doesn't upset controllers or other USB devices
+### No drivers needed
 
-Cooler Screen looks for one device only: USB ID **1B1C:0C57** (or 0C55). It matches that ID before opening anything, opens it shared, and uses Windows' built-in USB support. It installs no drivers and runs no background services, so DS4Windows, ViGEm, HidHide, Steam Input and everything else carry on as normal.
+Cooler Screen looks for one device only: USB ID **1B1C:0C57** (or 0C55). It matches that ID before opening anything, opens it shared, and uses Windows' built-in USB support. It installs no drivers and runs no background services.
 
 ## Temperatures and Sector
 

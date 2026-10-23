@@ -7,7 +7,7 @@
 **Your cooler's screen, without iCUE.**
 
 GIFs, pictures, clocks, live PC stats, now playing and weather on the round screen of the
-**CORSAIR NAUTILUS RS LCD**, from one small app that never touches your controllers or other USB devices.
+**CORSAIR NAUTILUS RS LCD**, from one small app with no drivers and no background services.
 
 **[Download for Windows](https://github.com/bhxuk/Corsair_Cooler_Screen/releases/latest/download/CoolerScreen-Setup.exe)**  ·  [Website](https://bhxuk.github.io/Corsair_Cooler_Screen/)  ·  [User guide](docs/USER-GUIDE.md)  ·  [What's new](CHANGELOG.md)
 
@@ -19,7 +19,7 @@ GIFs, pictures, clocks, live PC stats, now playing and weather on the round scre
 
 ## Why
 
-The NAUTILUS RS LCD's screen is normally driven by iCUE. iCUE is big, runs several background services, and on some PCs gets in the way of other things plugged in over USB, like a DualShock 4 controller running through DS4Windows.
+The NAUTILUS RS LCD's screen is normally driven by iCUE, which is big and runs several background services.
 
 Cooler Screen does the one job iCUE was needed for, on its own:
 

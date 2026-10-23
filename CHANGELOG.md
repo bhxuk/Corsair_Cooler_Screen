@@ -1,12 +1,16 @@
 # What's new
 
+## 1.0.1 (23 October 2026)
+
+- Clearer wording on the Cooler page.
+
 ## 1.0.0 (21 October 2026)
 
 The first version of Cooler Screen: pictures, GIFs, clocks and live stats on the CORSAIR NAUTILUS RS LCD, without iCUE.
 
 **The screen**
 - Talks to the cooler's screen directly over USB (1B1C:0C57, and 0C55 on some caps) using Windows' own HID support. No drivers, no services, no admin rights.
-- Only ever opens that one device, found by its USB ID before anything is opened, so game controllers, DS4Windows, ViGEm, HidHide and other USB devices are never touched.
+- Only ever opens the cooler's screen, found by its USB ID.
 - Brightness, rotation (0°, 90°, 180°, 270°), up to 30 frames a second, and a picture quality setting.
 - Hands the screen back to the cooler's own built-in display when Cooler Screen closes (can be turned off).
 - Reconnects by itself after unplugging, sleep and resume.

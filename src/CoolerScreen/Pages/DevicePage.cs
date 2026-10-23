@@ -78,8 +78,8 @@ namespace CoolerScreen.Pages
                 UI.Row("When Cooler Screen closes, give the screen back to the cooler", "The cooler goes back to its own built-in display.", handBack));
 
             // ---------- reassurance ----------
-            var safe = UI.Section("Plays nicely with everything else", null,
-                UI.Text("Cooler Screen only ever opens one device: the cooler's screen, USB ID 1B1C:0C57 (or 0C55). It finds it by that ID before opening anything, so it never touches your controller, DS4Windows, ViGEm or HidHide, or any other USB device.", 13, Theme.Muted),
+            var safe = UI.Section("How it works", null,
+                UI.Text("Cooler Screen only ever opens one device: the cooler's screen, USB ID 1B1C:0C57 (or 0C55). It finds it by that ID before opening anything.", 13, Theme.Muted),
                 UI.Text("It uses Windows' own built-in USB support. No drivers, no background services, no admin rights. The screen is opened shared, so nothing else is locked out.", 13, Theme.Muted),
                 UI.Text("Fans and the pump are on your motherboard's PWM headers, so they keep following your BIOS fan curves whether Cooler Screen is running or not.", 13, Theme.Muted));
 
